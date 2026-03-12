@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+"$ROOT/build.sh"
+
+git add "$ROOT/index.html"
+git add "$ROOT/essays/"*.html 2>/dev/null || true
