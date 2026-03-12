@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proof Symbols</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      color: #a0a0d0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .editor-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: #8888aa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 1rem;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      background: #16213e;
+      color: #e0e0e0;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #5050a0;
+    }
+
+    .preview {
+      width: 100%;
+      min-height: 120px;
+      padding: 1rem;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      background: #0f3460;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .copy-btn {
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
+      background: #5050a0;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: #6060b0; }
+    .copy-btn:active { background: #404090; }
+    .copy-btn.copied { background: #2e8b57; }
+
+    .reference {
+      border-top: 1px solid #2a2a4a;
+      padding-top: 1.5rem;
+    }
+
+    .reference h2 {
+      font-size: 1rem;
+      color: #8888aa;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .reference h2::before {
+      content: "▸ ";
+      display: inline-block;
+      transition: transform 0.15s;
+    }
+
+    .reference h2.open::before {
+      transform: rotate(90deg);
+    }
+
+    .ref-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .ref-grid.open {
+      display: grid;
+    }
+
+    .ref-category {
+      margin-bottom: 1rem;
+    }
+
+    .ref-category h3 {
+      font-size: 0.8rem;
+      color: #6868a8;
+      margin-bottom: 0.4rem;
+      grid-column: 1 / -1;
+    }
+
+    .ref-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.35rem 0.6rem;
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      font-size: 0.9rem;
+    }
+
+    .ref-item:hover {
+      border-color: #5050a0;
+    }
+
+    .ref-item .trigger {
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      color: #8888bb;
+      font-size: 0.8rem;
+    }
+
+    .ref-item .symbol {
+      font-size: 1.2rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      background: #2e8b57;
+      color: #fff;
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: all 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Proof Symbols</h1>
+
+    <div class="editor-section">
+      <div>
+        <label for="input">Input</label>
+        <textarea id="input" placeholder="Type here... e.g. \forall x \in S, P(x) -> Q(x)" spellcheck="false"></textarea>
+      </div>
+
+      <div>
+        <div class="preview-header">
+          <label>Preview</label>
+          <button class="copy-btn" id="copyBtn">Copy</button>
+        </div>
+        <div class="preview" id="preview"></div>
+      </div>
+    </div>
+
+    <div class="reference">
+      <h2 id="refToggle">Symbol Reference</h2>
+      <div class="ref-grid" id="refGrid"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+  <script>
+    const SYMBOLS = [
+      // Logical connectives
+      { category: "Logic", trigger: "\\and", alt: ["&&"], symbol: "\u2227" },
+      { category: "Logic", trigger: "\\or", alt: ["||"], symbol: "\u2228" },
+      { category: "Logic", trigger: "\\not", alt: ["!"], symbol: "\u00AC" },
+      { category: "Logic", trigger: "\\to", alt: ["->"], symbol: "\u2192" },
+      { category: "Logic", trigger: "\\implies", alt: ["=>"], symbol: "\u2192" },
+      { category: "Logic", trigger: "\\iff", alt: ["<->"], symbol: "\u2194" },
+
+      // Quantifiers
+      { category: "Quantifiers", trigger: "\\forall", alt: [], symbol: "\u2200" },
+      { category: "Quantifiers", trigger: "\\exists", alt: [], symbol: "\u2203" },
+
+      // Set theory
+      { category: "Sets", trigger: "\\in", alt: [], symbol: "\u2208" },
+      { category: "Sets", trigger: "\\notin", alt: [], symbol: "\u2209" },
+      { category: "Sets", trigger: "\\subset", alt: [], symbol: "\u2282" },
+      { category: "Sets", trigger: "\\subseteq", alt: [], symbol: "\u2286" },
+      { category: "Sets", trigger: "\\union", alt: [], symbol: "\u222A" },
+      { category: "Sets", trigger: "\\intersect", alt: [], symbol: "\u2229" },
+      { category: "Sets", trigger: "\\emptyset", alt: [], symbol: "\u2205" },
+      { category: "Sets", trigger: "\\powerset", alt: [], symbol: "\u2118" },
+
+      // Proof notation
+      { category: "Proof", trigger: "\\therefore", alt: [], symbol: "\u2234" },
+      { category: "Proof", trigger: "\\because", alt: [], symbol: "\u2235" },
+      { category: "Proof", trigger: "\\turnstile", alt: ["|-"], symbol: "\u22A2" },
+      { category: "Proof", trigger: "\\models", alt: ["|="], symbol: "\u22A8" },
+      { category: "Proof", trigger: "\\qed", alt: [], symbol: "\u25A1" },
+
+      // Relations & arithmetic
+      { category: "Relations", trigger: "\\neq", alt: ["!="], symbol: "\u2260" },
+      { category: "Relations", trigger: "\\leq", alt: ["<="], symbol: "\u2264" },
+      { category: "Relations", trigger: "\\geq", alt: [">="], symbol: "\u2265" },
+      { category: "Relations", trigger: "\\times", alt: [], symbol: "\u00D7" },
+      { category: "Relations", trigger: "\\cdot", alt: [], symbol: "\u00B7" },
+      { category: "Relations", trigger: "\\inf", alt: [], symbol: "\u221E" },
+
+      // Number sets
+      { category: "Number Sets", trigger: "\\nat", alt: [], symbol: "\u2115" },
+      { category: "Number Sets", trigger: "\\int", alt: [], symbol: "\u2124" },
+      { category: "Number Sets", trigger: "\\rat", alt: [], symbol: "\u211A" },
+      { category: "Number Sets", trigger: "\\real", alt: [], symbol: "\u211D" },
+    ];
+
+    // Build replacement map, sorted longest-first to avoid partial matches
+    const replacements = [];
+    for (const s of SYMBOLS) {
+      replacements.push({ from: s.trigger, to: s.symbol });
+      for (const a of s.alt) {
+        replacements.push({ from: a, to: s.symbol });
+      }
+    }
+    replacements.sort((a, b) => b.from.length - a.from.length);
+
+    function convert(text) {
+      let result = text;
+      for (const r of replacements) {
+        result = result.replaceAll(r.from, r.to);
+      }
+      return result;
+    }
+
+    // Editor
+    const input = document.getElementById("input");
+    const preview = document.getElementById("preview");
+    const copyBtn = document.getElementById("copyBtn");
+    const toast = document.getElementById("toast");
+
+    input.addEventListener("input", () => {
+      preview.textContent = convert(input.value);
+    });
+
+    copyBtn.addEventListener("click", () => {
+      const text = preview.textContent;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = "Copied!";
+        copyBtn.classList.add("copied");
+        toast.classList.add("show");
+        setTimeout(() => {
+          copyBtn.textContent = "Copy";
+          copyBtn.classList.remove("copied");
+          toast.classList.remove("show");
+        }, 1500);
+      });
+    });
+
+    // Reference panel
+    const refToggle = document.getElementById("refToggle");
+    const refGrid = document.getElementById("refGrid");
+
+    refToggle.addEventListener("click", () => {
+      refToggle.classList.toggle("open");
+      refGrid.classList.toggle("open");
+    });
+
+    // Build reference grid
+    const categories = [...new Set(SYMBOLS.map(s => s.category))];
+    for (const cat of categories) {
+      const heading = document.createElement("h3");
+      heading.textContent = cat;
+      heading.style.gridColumn = "1 / -1";
+      refGrid.appendChild(heading);
+
+      for (const s of SYMBOLS.filter(s => s.category === cat)) {
+        const item = document.createElement("div");
+        item.className = "ref-item";
+        const allTriggers = [s.trigger, ...s.alt].join("  ");
+        item.innerHTML = `<span class="trigger">${allTriggers}</span><span class="symbol">${s.symbol}</span>`;
+        item.addEventListener("click", () => {
+          input.value += s.symbol;
+          input.focus();
+          preview.textContent = convert(input.value);
+        });
+        refGrid.appendChild(item);
+      }
+    }
+  </script>
+</body>
+</html>
