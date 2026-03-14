@@ -14,7 +14,9 @@ Sit in a chair with decent support, where your feet rest comfortably on the floo
 
 ## How to use this guide
 
-You don't need to follow these in a linear order, and you're not expected to get through all of them in a single session. These are exercises you build up to over time, the way you'd build any muscle. In the beginning, you may not get past the first one; later on, you may be able to move between them effortlessly. Don't rush through them — when you enter one, give it the time it deserves. Only move on once you've sat with it.
+You don't need to follow these in a linear order, and you're not expected to get through all of them in a single session. These are exercises you build up to over time, the way you'd build any muscle. 
+
+In the beginning, you may not get past the first one; later on, you may be able to move between them effortlessly. Don't rush through them — when you enter one, give it the time it deserves. Only move on once you've sat with it.
 
 ## On wandering thoughts
 
@@ -26,7 +28,7 @@ This will happen, but it's okay. Success is not the absence of distraction. It's
 
 ## Body scan
 
-In the beginning, simply observe sensations in your body. Start at your feet, the feeling of light pressure as they rest on the ground. Scan through your legs, waist, abdomen, arms; don't rush it, but observe the details. How does the fabric of your clothes feel on your skin? How does the breeze in the room feel? 
+Begin by simply observing sensations in your body. Start at your feet, the feeling of light pressure as they rest on the ground. Scan through your legs, waist, abdomen, arms; don't rush it, but observe the details. How does the fabric of your clothes feel on your skin? How does the breeze in the room feel? 
 
 I also listen for background noise — the quietest sound, the most distant one I can find. 
 
