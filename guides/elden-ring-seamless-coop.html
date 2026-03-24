@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Elden Ring Seamless Co-op</title>
+  <link rel="stylesheet" href="/guides/guide-style.css">
+</head>
+<body>
+  <a href="/guides/" class="back-link">&larr; all guides</a>
+  <article>
+    <h1>Elden Ring Seamless Co-op</h1>
+    <p class="guide-description">Install the Seamless Co-op mod on a
+Steam Deck and play through the entire game with a friend.</p>
+    <p>Install the <a
+    href="https://www.nexusmods.com/eldenring/mods/510">Seamless Co-op
+    mod</a> by LukeYui on a Steam Deck. This lets you play through the
+    entire game cooperatively — no summoning pools, no fog walls, no
+    sending your friend home after a boss.</p>
+    <p><strong>Prerequisite:</strong> <a
+    href="/guides/steam-deck-ssh-setup.html">SSH access to the Steam
+    Deck</a> makes most of these steps much easier. Only one step
+    requires Desktop Mode.</p>
+    <h2 id="overview">Overview</h2>
+    <ol type="1">
+    <li>Download the mod</li>
+    <li>Extract it into the Elden Ring <code>Game/</code> directory</li>
+    <li>Configure the password and settings</li>
+    <li>Add the mod launcher as a non-Steam game and force Proton
+    (requires Desktop Mode)</li>
+    <li>Disable Elden Ring auto-updates</li>
+    </ol>
+    <h2 id="download-the-mod">1. Download the Mod</h2>
+    <p>Download from either source (same files):</p>
+    <ul>
+    <li><strong>Nexus Mods:</strong> <a
+    href="https://www.nexusmods.com/eldenring/mods/510">nexusmods.com/eldenring/mods/510</a>
+    (Manual Download)</li>
+    <li><strong>GitHub:</strong> <a
+    href="https://github.com/LukeYui/EldenRingSeamlessCoopRelease/releases">LukeYui/EldenRingSeamlessCoopRelease</a></li>
+    </ul>
+    <p>Over SSH, you can download the latest release directly on the
+    Deck. Check the <a
+    href="https://github.com/LukeYui/EldenRingSeamlessCoopRelease/releases">GitHub
+    releases page</a> for the current version, then:</p>
+    <div class="sourceCode" id="cb1"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace the URL with the latest release link</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-LO</span> <span class="st">&quot;https://github.com/LukeYui/EldenRingSeamlessCoopRelease/releases/download/v1.9.5/Seamless.Co-op.v1.9.5-510-1-9-5-1772481623.zip&quot;</span> <span class="at">-o</span> /tmp/ersc.zip</span></code></pre></div>
+    <h2 id="extract-into-the-game-directory">2. Extract into the Game
+    Directory</h2>
+    <p>The mod goes into the <code>Game/</code> subfolder — not the
+    Elden Ring root.</p>
+    <div class="sourceCode" id="cb2"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">ELDEN_RING</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.local/share/Steam/steamapps/common/ELDEN RING/Game&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify the path exists</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">/eldenring.exe&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">unzip</span> /tmp/ersc.zip <span class="at">-d</span> <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">&quot;</span></span></code></pre></div>
+    <p>After extraction, you should have:</p>
+    <pre><code>Game/
+├── ersc_launcher.exe
+└── SeamlessCoop/
+    ├── crashpad/
+    │   └── crashpad_handler.exe
+    ├── locale/
+    │   └── english.json
+    ├── ersc.dll
+    └── ersc_settings.ini</code></pre>
+    <h2 id="configure-the-mod">3. Configure the Mod</h2>
+    <p>Edit the settings file:</p>
+    <div class="sourceCode" id="cb4"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">/SeamlessCoop/ersc_settings.ini&quot;</span></span></code></pre></div>
+    <p>Key settings:</p>
+    <table>
+    <colgroup>
+    <col style="width: 33%" />
+    <col style="width: 33%" />
+    <col style="width: 33%" />
+    </colgroup>
+    <thead>
+    <tr>
+    <th>Setting</th>
+    <th>What it does</th>
+    <th>Default</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td><code>cooppassword</code></td>
+    <td><strong>All players must use the same password</strong></td>
+    <td><em>(empty — must set this)</em></td>
+    </tr>
+    <tr>
+    <td><code>allow_invaders</code></td>
+    <td>Allow PvP invasions during co-op</td>
+    <td><code>1</code> (on)</td>
+    </tr>
+    <tr>
+    <td><code>allow_summons</code></td>
+    <td>Allow spirit summons in multiplayer</td>
+    <td><code>1</code> (on)</td>
+    </tr>
+    <tr>
+    <td><code>skip_splash_screens</code></td>
+    <td>Skip intro logos on boot</td>
+    <td><code>0</code> (off)</td>
+    </tr>
+    <tr>
+    <td><code>enemy_health_scaling</code></td>
+    <td>Enemy HP increase per extra player (%)</td>
+    <td><code>35</code></td>
+    </tr>
+    <tr>
+    <td><code>boss_health_scaling</code></td>
+    <td>Boss HP increase per extra player (%)</td>
+    <td><code>100</code></td>
+    </tr>
+    <tr>
+    <td><code>save_file_extension</code></td>
+    <td>Co-op save file extension</td>
+    <td><code>co2</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>You can set the password over SSH without a text editor:</p>
+    <div class="sourceCode" id="cb5"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sed</span> <span class="at">-i</span> <span class="st">&#39;s/^cooppassword =.*/cooppassword = YOUR_PASSWORD_HERE/&#39;</span> <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">/SeamlessCoop/ersc_settings.ini&quot;</span></span></code></pre></div>
+    <p>The co-op save (<code>.co2</code>) is separate from your normal
+    save (<code>.sl2</code>), so your solo progress is safe.</p>
+    <h2 id="add-as-a-non-steam-game-desktop-mode-required">4. Add as a
+    Non-Steam Game (Desktop Mode required)</h2>
+    <p>This step requires the Steam UI — it can’t be done over SSH.</p>
+    <ol type="1">
+    <li>Switch to <strong>Desktop Mode</strong> (hold Power &gt; Switch
+    to Desktop)</li>
+    <li>Open <strong>Steam</strong></li>
+    <li>Click <strong>Add a Game</strong> (bottom-left) &gt; <strong>Add
+    a Non-Steam Game</strong></li>
+    <li>Click <strong>Browse</strong>, navigate to
+    <code>~/.local/share/Steam/steamapps/common/ELDEN RING/Game/</code>
+    and select <strong><code>ersc_launcher.exe</code></strong></li>
+    <li>Right-click the new library entry &gt;
+    <strong>Properties</strong> &gt; <strong>Compatibility</strong></li>
+    <li>Check <strong>“Force the use of a specific Steam Play
+    compatibility tool”</strong></li>
+    <li>Select <strong>Proton 8.0</strong> (or Proton 9 / Experimental —
+    all work, 8.0 is most stable)</li>
+    </ol>
+    <blockquote>
+    <p>Without forcing Proton, the launcher will try to run as a native
+    Linux binary and fail.</p>
+    </blockquote>
+    <p>If using other mods alongside Seamless Co-op, add this to
+    <strong>Launch Options</strong>:</p>
+    <pre><code>WINEDLLOVERRIDES=&quot;dinput8.dll=n,b&quot; %command%</code></pre>
+    <h2 id="disable-elden-ring-auto-updates">5. Disable Elden Ring
+    Auto-Updates</h2>
+    <p><strong>The mod breaks every time FromSoftware patches the
+    game.</strong> Only update when a new mod version is available.</p>
+    <p>In Steam: right-click Elden Ring &gt; <strong>Properties</strong>
+    &gt; <strong>Updates</strong> &gt; <strong>“Only update this game
+    when I launch it”</strong></p>
+    <p>This way, always launch via the mod’s <code>ersc_launcher</code>
+    and the base game won’t auto-update out from under you.</p>
+    <h2 id="import-your-existing-character-optional">6. Import Your
+    Existing Character (Optional)</h2>
+    <p>The mod uses a separate save file. To bring over your
+    character:</p>
+    <div class="sourceCode" id="cb7"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find your vanilla save</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> ~/.local/share/Steam/steamapps/compatdata/1245620 <span class="at">-name</span> <span class="st">&quot;ER0000.sl2&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Copy it as a co-op save into the mod&#39;s prefix</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># (the exact path depends on the non-Steam shortcut&#39;s app ID)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="op">&lt;</span>path-to-ER0000.sl2<span class="op">&gt;</span> <span class="op">&lt;</span>co-op-prefix-path<span class="op">&gt;</span>/ER0000.co2</span></code></pre></div>
+    <h2 id="playing">Playing</h2>
+    <p>Once everything is set up, launch the game from the
+    <strong>Seamless Co-op launcher</strong> in your Steam library (not
+    the regular Elden Ring entry).</p>
+    <p>In-game items added by the mod:</p>
+    <table>
+    <thead>
+    <tr>
+    <th>Item</th>
+    <th>Purpose</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td><strong>Tiny Great Pot</strong></td>
+    <td>Host opens a session</td>
+    </tr>
+    <tr>
+    <td><strong>Effigy of Malenia</strong></td>
+    <td>Join a session</td>
+    </tr>
+    <tr>
+    <td><strong>Separation Mist</strong></td>
+    <td>Leave a session (use before quitting)</td>
+    </tr>
+    </tbody>
+    </table>
+    <h2 id="updating-the-mod">Updating the Mod</h2>
+    <p>When a new version is released:</p>
+    <div class="sourceCode" id="cb8"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="va">ELDEN_RING</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.local/share/Steam/steamapps/common/ELDEN RING/Game&quot;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Back up your settings (password, scaling, etc.)</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">/SeamlessCoop/ersc_settings.ini&quot;</span> /tmp/ersc_settings.ini.bak</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove old version</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">/ersc_launcher.exe&quot;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">/SeamlessCoop&quot;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Download and extract new version (update the URL)</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-LO</span> <span class="st">&quot;https://github.com/LukeYui/EldenRingSeamlessCoopRelease/releases/download/&lt;version&gt;/&lt;filename&gt;.zip&quot;</span> <span class="at">-o</span> /tmp/ersc.zip</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">unzip</span> /tmp/ersc.zip <span class="at">-d</span> <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">&quot;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Restore your settings</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> /tmp/ersc_settings.ini.bak <span class="st">&quot;</span><span class="va">$ELDEN_RING</span><span class="st">/SeamlessCoop/ersc_settings.ini&quot;</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean up</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> /tmp/ersc.zip /tmp/ersc_settings.ini.bak</span></code></pre></div>
+    <p>Your save file and the non-Steam game entry are unaffected.</p>
+    <h2 id="troubleshooting">Troubleshooting</h2>
+    <table>
+    <colgroup>
+    <col style="width: 50%" />
+    <col style="width: 50%" />
+    </colgroup>
+    <thead>
+    <tr>
+    <th>Problem</th>
+    <th>Fix</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>Play button flashes then nothing</td>
+    <td>Normal — game window may open behind the debug console. Wait a
+    moment.</td>
+    </tr>
+    <tr>
+    <td>Game doesn’t launch</td>
+    <td>Files must be in <code>Game/</code>, not the parent
+    <code>ELDEN RING/</code> folder. Check Proton is forced in
+    Compatibility settings.</td>
+    </tr>
+    <tr>
+    <td>Can’t connect to friend</td>
+    <td>Same mod version? Same password exactly? Check
+    <code>ersc_settings.ini</code> on both Decks.</td>
+    </tr>
+    <tr>
+    <td>Crashes on startup</td>
+    <td>Disable Discord or other overlays — they conflict with the mod’s
+    DLL hooks.</td>
+    </tr>
+    <tr>
+    <td>WiFi drops during co-op</td>
+    <td>Steam Deck WiFi can be flaky — a USB-C Ethernet adapter
+    helps.</td>
+    </tr>
+    <tr>
+    <td>Mod stops working after game update</td>
+    <td>Expected. Wait for a new mod release, then follow the update
+    steps above.</td>
+    </tr>
+    </tbody>
+    </table>
+  </article>
+</body>
+</html>

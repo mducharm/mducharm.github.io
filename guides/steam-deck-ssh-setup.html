@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steam Deck SSH Setup</title>
+  <link rel="stylesheet" href="/guides/guide-style.css">
+</head>
+<body>
+  <a href="/guides/" class="back-link">&larr; all guides</a>
+  <article>
+    <h1>Steam Deck SSH Setup</h1>
+    <p class="guide-description">Persistent SSH access with key auth,
+optional Tailscale, and survival across SteamOS updates.</p>
+    <p>Guide to setting up persistent SSH access to a Steam Deck from
+    another computer (e.g., macOS). Uses SSH key authentication with
+    password login disabled for security. Optionally uses Tailscale for
+    a stable address that works from any network.</p>
+    <h2 id="switch-to-desktop-mode">1. Switch to Desktop Mode</h2>
+    <p>On the Steam Deck:</p>
+    <ol type="1">
+    <li>Press the <strong>Steam</strong> button (or hold the
+    <strong>Power</strong> button)</li>
+    <li>Select <strong>Power</strong> &gt; <strong>Switch to Desktop
+    Mode</strong></li>
+    <li>Open <strong>Konsole</strong> (search for it in the application
+    launcher in the bottom-left)</li>
+    </ol>
+    <blockquote>
+    <p>To return to Gaming Mode later, double-tap the <strong>Return to
+    Gaming Mode</strong> icon on the desktop.</p>
+    </blockquote>
+    <h2 id="set-a-password-for-the-deck-user">2. Set a Password for the
+    deck User</h2>
+    <p>The <code>deck</code> user has no password by default. You need
+    one for <code>sudo</code>:</p>
+    <div class="sourceCode" id="cb1"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">passwd</span></span></code></pre></div>
+    <p>Choose a strong password. You’ll use this for <code>sudo</code>
+    commands, not for SSH login.</p>
+    <h2 id="enable-the-ssh-server">3. Enable the SSH Server</h2>
+    <div class="sourceCode" id="cb2"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> sshd</span></code></pre></div>
+    <p>This starts SSH immediately and ensures it starts on every
+    boot.</p>
+    <h2 id="install-tailscale-optional">4. Install Tailscale
+    (Optional)</h2>
+    <blockquote>
+    <p><strong>Skip this section</strong> if you only need SSH on your
+    local network. Tailscale is useful if you want a stable hostname
+    that works from anywhere — not just your home Wi-Fi.</p>
+    </blockquote>
+    <p>Tailscale gives the Steam Deck a stable IP and hostname. We
+    install it to the home directory so it survives SteamOS updates.</p>
+    <h3 id="download-and-install">Download and install</h3>
+    <div class="sourceCode" id="cb3"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/.local/bin</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsSL</span> https://tailscale.com/install.sh <span class="kw">|</span> <span class="fu">sh</span></span></code></pre></div>
+    <blockquote>
+    <p>If the install script doesn’t work on SteamOS, use the standalone
+    tarball instead:</p>
+    <div class="sourceCode" id="cb4"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsSL</span> <span class="st">&quot;https://pkgs.tailscale.com/stable/tailscale_latest_amd64.tgz&quot;</span> <span class="at">-o</span> /tmp/tailscale.tgz</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xzf</span> /tmp/tailscale.tgz <span class="at">-C</span> /tmp</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> /tmp/tailscale_<span class="pp">*</span>/tailscale ~/.local/bin/</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> /tmp/tailscale_<span class="pp">*</span>/tailscaled ~/.local/bin/</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> /tmp/tailscale<span class="pp">*</span></span></code></pre></div>
+    </blockquote>
+    <h3 id="create-a-systemd-user-service-for-tailscale">Create a
+    systemd user service for Tailscale</h3>
+    <p>This ensures Tailscale starts on boot without needing
+    root-installed packages:</p>
+    <div class="sourceCode" id="cb5"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/.config/systemd/user</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="op">&gt;</span> ~/.config/systemd/user/tailscaled.service <span class="op">&lt;&lt; &#39;EOF&#39;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">[Unit]</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">Description=Tailscale Daemon</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">After=network-online.target</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">Wants=network-online.target</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="st">[Service]</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="st">ExecStart=%h/.local/bin/tailscaled \</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="st">  --state=%h/.local/share/tailscale/tailscaled.state \</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="st">  --socket=%h/.local/share/tailscale/tailscaled.sock \</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="st">  --tun=userspace-networking \</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="st">  --socks5-server=localhost:1055 \</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="st">  --outbound-http-proxy-listen=localhost:1055</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="st">Restart=on-failure</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="st">[Install]</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="st">WantedBy=default.target</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/.local/share/tailscale</span></code></pre></div>
+    <blockquote>
+    <p><strong>Note:</strong> This uses userspace networking mode since
+    SteamOS may not allow creating TUN devices without root. If
+    <code>tailscale up</code> doesn’t work, try the root-based approach
+    instead:</p>
+    <div class="sourceCode" id="cb6"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /etc/systemd/system</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cat <span class="op">&gt;</span> /etc/systemd/system/tailscaled.service <span class="op">&lt;&lt; &#39;EOF&#39;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="st">[Unit]</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="st">Description=Tailscale Daemon</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="st">After=network-online.target</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="st">Wants=network-online.target</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="st">[Service]</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="st">ExecStart=/home/deck/.local/bin/tailscaled \</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="st">  --state=/home/deck/.local/share/tailscale/tailscaled.state</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="st">Restart=on-failure</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="st">[Install]</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="st">WantedBy=multi-user.target</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> tailscaled</span></code></pre></div>
+    </blockquote>
+    <h3 id="start-tailscale">Start Tailscale</h3>
+    <div class="sourceCode" id="cb7"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> <span class="at">--user</span> enable <span class="at">--now</span> tailscaled</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">loginctl</span> enable-linger deck</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">~/.local/bin/tailscale</span> <span class="at">--socket</span><span class="op">=</span><span class="va">$HOME</span>/.local/share/tailscale/tailscaled.sock up</span></code></pre></div>
+    <p>Follow the link to authenticate with your Tailscale account. Once
+    connected, your Steam Deck will appear in your Tailscale
+    dashboard.</p>
+    <h3 id="verify">Verify</h3>
+    <div class="sourceCode" id="cb8"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">~/.local/bin/tailscale</span> <span class="at">--socket</span><span class="op">=</span><span class="va">$HOME</span>/.local/share/tailscale/tailscaled.sock status</span></code></pre></div>
+    <p>You should see your Steam Deck listed. Note the Tailscale IP
+    (<code>100.x.x.x</code>) and the MagicDNS hostname (usually
+    <code>steamdeck</code>).</p>
+    <h3 id="optional-add-a-shell-alias">Optional: add a shell alias</h3>
+    <div class="sourceCode" id="cb9"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&#39;alias tailscale=&quot;~/.local/bin/tailscale --socket=$HOME/.local/share/tailscale/tailscaled.sock&quot;&#39;</span> <span class="op">&gt;&gt;</span> ~/.bashrc</span></code></pre></div>
+    <p>Then you can just run <code>tailscale status</code>,
+    <code>tailscale up</code>, etc.</p>
+    <h2 id="get-the-steam-decks-ip-address">5. Get the Steam Deck’s IP
+    Address</h2>
+    <div class="sourceCode" id="cb10"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ip</span> <span class="at">-4</span> addr show wlan0 <span class="kw">|</span> <span class="fu">grep</span> inet</span></code></pre></div>
+    <p>Note the IP (e.g., <code>192.168.1.x</code>). You may want to
+    assign a static IP or DHCP reservation in your router so this
+    doesn’t change.</p>
+    <p>If you set up Tailscale in step 4, you can also use the MagicDNS
+    hostname <code>steamdeck</code> or the Tailscale IP
+    (<code>100.x.x.x</code> from <code>tailscale status</code>), which
+    works from any network.</p>
+    <h2 id="set-up-ssh-key-authentication-from-your-computer">6. Set Up
+    SSH Key Authentication (from your computer)</h2>
+    <p>On your Mac/PC (not the Steam Deck):</p>
+    <h3 id="generate-a-key-skip-if-you-already-have-one">Generate a key
+    (skip if you already have one)</h3>
+    <div class="sourceCode" id="cb11"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-C</span> <span class="st">&quot;your-email@example.com&quot;</span></span></code></pre></div>
+    <p>Press Enter to accept the default location
+    (<code>~/.ssh/id_ed25519</code>). Add a passphrase if you want extra
+    local security.</p>
+    <h3 id="copy-the-key-to-the-steam-deck">Copy the key to the Steam
+    Deck</h3>
+    <div class="sourceCode" id="cb12"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ssh-copy-id</span> deck@<span class="op">&lt;</span>steam-deck-ip<span class="op">&gt;</span></span></code></pre></div>
+    <p>Replace <code>&lt;steam-deck-ip&gt;</code> with the local IP from
+    step 5, or the Tailscale hostname <code>steamdeck</code> if you set
+    that up.</p>
+    <p>This will ask for the <code>deck</code> password one last time.
+    After this, key auth is set up.</p>
+    <h3 id="test-it">Test it</h3>
+    <div class="sourceCode" id="cb13"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deck@<span class="op">&lt;</span>steam-deck-ip<span class="op">&gt;</span></span></code></pre></div>
+    <p>You should connect without being prompted for a password.</p>
+    <h2 id="disable-password-authentication">7. Disable Password
+    Authentication</h2>
+    <p>Now that key auth works, lock down SSH to key-only access. On the
+    <strong>Steam Deck</strong>:</p>
+    <div class="sourceCode" id="cb14"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /etc/ssh/sshd_config.d</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="at">-e</span> <span class="st">&quot;PasswordAuthentication no\nKbdInteractiveAuthentication no&quot;</span> <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">|</span> <span class="fu">sudo</span> tee /etc/ssh/sshd_config.d/no-password.conf</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl restart sshd</span></code></pre></div>
+    <p>Using a drop-in config file (<code>sshd_config.d/</code>) is more
+    resilient to SteamOS updates than editing the main config
+    directly.</p>
+    <h2 id="add-an-ssh-config-alias-optional-on-your-computer">8. Add an
+    SSH Config Alias (optional, on your computer)</h2>
+    <p>Add this to <code>~/.ssh/config</code> on your Mac/PC:</p>
+    <pre><code>Host steamdeck
+    HostName &lt;steam-deck-ip&gt;
+    User deck</code></pre>
+    <p>For <code>HostName</code>, use either:</p>
+    <ul>
+    <li>The <strong>local IP</strong> (e.g., <code>192.168.1.x</code>) —
+    works on your home network</li>
+    <li>The <strong>Tailscale hostname</strong> <code>steamdeck</code> —
+    works from anywhere (if you set up step 4)</li>
+    </ul>
+    <p>Now you can just run:</p>
+    <div class="sourceCode" id="cb16"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> steamdeck</span></code></pre></div>
+    <h2 id="surviving-steamos-updates">Surviving SteamOS Updates</h2>
+    <p>SteamOS has a read-only root filesystem that gets replaced on
+    major updates. Some things to know:</p>
+    <ul>
+    <li><strong>sshd enabled state</strong> should persist across
+    updates (systemd enables are stored in <code>/etc</code>, which is
+    preserved)</li>
+    <li><strong>Your password</strong> may get reset on major updates —
+    just run <code>passwd</code> again</li>
+    <li><strong>The drop-in sshd config</strong> in
+    <code>/etc/ssh/sshd_config.d/</code> should persist, but verify
+    after major updates</li>
+    <li><strong>Your <code>~/.ssh/authorized_keys</code></strong> lives
+    in the home directory and will survive updates</li>
+    <li><strong>Tailscale</strong> (if installed) — the binary and user
+    service live in <code>~/.local/</code>, which survives updates. The
+    systemd user service auto-starts via lingering. If Tailscale stops
+    connecting, re-run <code>tailscale up</code></li>
+    </ul>
+    <p>If SSH stops working after an update, switch to Desktop Mode and
+    re-run:</p>
+    <div class="sourceCode" id="cb17"><pre
+    class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">passwd</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> sshd</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># If you have Tailscale and it&#39;s down too:</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> <span class="at">--user</span> restart tailscaled</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="ex">tailscale</span> up</span></code></pre></div>
+    <h2 id="troubleshooting">Troubleshooting</h2>
+    <table>
+    <colgroup>
+    <col style="width: 50%" />
+    <col style="width: 50%" />
+    </colgroup>
+    <thead>
+    <tr>
+    <th>Problem</th>
+    <th>Fix</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>Connection refused</td>
+    <td>Is sshd running? <code>sudo systemctl status sshd</code></td>
+    </tr>
+    <tr>
+    <td>Permission denied</td>
+    <td>Check <code>~/.ssh/authorized_keys</code> exists on the Deck.
+    Re-run <code>ssh-copy-id</code> if needed</td>
+    </tr>
+    <tr>
+    <td>Can’t find Steam Deck</td>
+    <td>If using Tailscale: is it running on both devices?
+    <code>tailscale status</code>. If using local IP: are both on the
+    same network? Re-check with <code>ip -4 addr show wlan0</code></td>
+    </tr>
+    <tr>
+    <td>Tailscale won’t start</td>
+    <td>Check the service:
+    <code>systemctl --user status tailscaled</code>. Check lingering:
+    <code>loginctl show-user deck \| grep Linger</code></td>
+    </tr>
+    <tr>
+    <td>Password stopped working</td>
+    <td>Expected if you disabled password auth. Use your SSH key</td>
+    </tr>
+    <tr>
+    <td>SSH broke after SteamOS update</td>
+    <td>See “Surviving SteamOS Updates” above</td>
+    </tr>
+    </tbody>
+    </table>
+  </article>
+</body>
+</html>

@@ -15,3 +15,5 @@ A pre-commit hook (`.githooks/pre-commit`) runs the build and stages generated H
 - `essays/*.html` and `index.html` are generated — don't edit them directly.
 - New essay: create `essays/<slug>.md` with `title`, `date`, `description` frontmatter.
 - New tool: add a `tools/<name>/` directory with an `index.html`.
+- New guide: create `guides/<slug>.md` with `title`, `date`, `description` frontmatter. Uses its own template and Elden Ring-themed CSS.
+- `guides/*.html` and `guides/index.html` are generated — don't edit them directly.

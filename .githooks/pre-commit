@@ -7,3 +7,4 @@ ROOT="$(git rev-parse --show-toplevel)"
 
 git add "$ROOT/index.html"
 git add "$ROOT/essays/"*.html 2>/dev/null || true
+git add "$ROOT/guides/"*.html 2>/dev/null || true
