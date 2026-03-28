@@ -233,31 +233,45 @@
       { category: "Sets", trigger: "\\notin", alt: [], symbol: "\u2209" },
       { category: "Sets", trigger: "\\subset", alt: [], symbol: "\u2282" },
       { category: "Sets", trigger: "\\subseteq", alt: [], symbol: "\u2286" },
+      { category: "Sets", trigger: "\\supset", alt: [], symbol: "\u2283" },
+      { category: "Sets", trigger: "\\supseteq", alt: [], symbol: "\u2287" },
       { category: "Sets", trigger: "\\union", alt: [], symbol: "\u222A" },
       { category: "Sets", trigger: "\\intersect", alt: [], symbol: "\u2229" },
+      { category: "Sets", trigger: "\\setminus", alt: ["\\diff"], symbol: "\u2216" },
+      { category: "Sets", trigger: "\\symdiff", alt: [], symbol: "\u25B3" },
       { category: "Sets", trigger: "\\emptyset", alt: [], symbol: "\u2205" },
       { category: "Sets", trigger: "\\powerset", alt: [], symbol: "\u2118" },
+
+      // Relations & functions
+      { category: "Relations", trigger: "\\compose", alt: ["\\circ"], symbol: "\u2218" },
+      { category: "Relations", trigger: "\\neq", alt: ["!="], symbol: "\u2260" },
+      { category: "Relations", trigger: "\\leq", alt: ["<="], symbol: "\u2264" },
+      { category: "Relations", trigger: "\\geq", alt: [">="], symbol: "\u2265" },
+      { category: "Relations", trigger: "\\times", alt: [], symbol: "\u00D7" },
+      { category: "Relations", trigger: "\\cdot", alt: [], symbol: "\u00B7" },
+      { category: "Relations", trigger: "\\divides", alt: [], symbol: "\u2223" },
+      { category: "Relations", trigger: "\\ndivides", alt: [], symbol: "\u2224" },
+      { category: "Relations", trigger: "\\equiv", alt: [], symbol: "\u2261" },
+      { category: "Relations", trigger: "\\approx", alt: [], symbol: "\u2248" },
+      { category: "Relations", trigger: "\\inf", alt: [], symbol: "\u221E" },
 
       // Proof notation
       { category: "Proof", trigger: "\\therefore", alt: [], symbol: "\u2234" },
       { category: "Proof", trigger: "\\because", alt: [], symbol: "\u2235" },
       { category: "Proof", trigger: "\\turnstile", alt: ["|-"], symbol: "\u22A2" },
       { category: "Proof", trigger: "\\models", alt: ["|="], symbol: "\u22A8" },
+      { category: "Proof", trigger: "\\contradiction", alt: ["\\bot"], symbol: "\u22A5" },
       { category: "Proof", trigger: "\\qed", alt: [], symbol: "\u25A1" },
-
-      // Relations & arithmetic
-      { category: "Relations", trigger: "\\neq", alt: ["!="], symbol: "\u2260" },
-      { category: "Relations", trigger: "\\leq", alt: ["<="], symbol: "\u2264" },
-      { category: "Relations", trigger: "\\geq", alt: [">="], symbol: "\u2265" },
-      { category: "Relations", trigger: "\\times", alt: [], symbol: "\u00D7" },
-      { category: "Relations", trigger: "\\cdot", alt: [], symbol: "\u00B7" },
-      { category: "Relations", trigger: "\\inf", alt: [], symbol: "\u221E" },
 
       // Number sets
       { category: "Number Sets", trigger: "\\nat", alt: [], symbol: "\u2115" },
       { category: "Number Sets", trigger: "\\int", alt: [], symbol: "\u2124" },
       { category: "Number Sets", trigger: "\\rat", alt: [], symbol: "\u211A" },
       { category: "Number Sets", trigger: "\\real", alt: [], symbol: "\u211D" },
+
+      // Arrows
+      { category: "Arrows", trigger: "\\mapsto", alt: ["|->"], symbol: "\u21A6" },
+      { category: "Arrows", trigger: "\\leftarrow", alt: ["<-"], symbol: "\u2190" },
     ];
 
     // Build replacement map, sorted longest-first to avoid partial matches
